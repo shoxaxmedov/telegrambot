@@ -3,7 +3,7 @@ from telegram.ext import Updater, CommandHandler, ChatJoinRequestHandler, Callba
 import logging
 
 # Tokeningizni kiriting
-TOKEN = '7320239291:AAEeSE1fbtaUmfm8hbEwH0dRm12WlSwkug0'
+TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
 
 # Logging formatini sozlash
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -40,6 +40,8 @@ def main():
         updater.idle()
     except Exception as e:
         logger.error(f'Failed to start bot: {e}')
+        # Botni qayta urinish qilish uchun qayta chaqirish
+        main()
 
 def error(update: Update, context: CallbackContext):
     """Log Errors caused by Updates."""
