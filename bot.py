@@ -1,8 +1,6 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ChatJoinRequestHandler
-from telegram.error import NetworkError, Unauthorized
+from telegram.ext import Updater, CommandHandler, ChatJoinRequestHandler, CallbackContext
 import logging
-import time
 
 # Tokeningizni kiriting
 TOKEN = '7320239291:AAEeSE1fbtaUmfm8hbEwH0dRm12WlSwkug0'
@@ -23,27 +21,25 @@ def approve_join_request(update: Update, context: CallbackContext):
     try:
         context.bot.approve_chat_join_request(chat_id, user_id)
         logger.info(f"Approved join request from user {user_id}")
-    except NetworkError as e:
-        logger.error(f'NetworkError: {e}')
-        time.sleep(5)
-        try:
-            context.bot.approve_chat_join_request(chat_id, user_id)
-            logger.info(f"Approved join request from user {user_id} after retry")
-        except Exception as e:
-            logger.error(f'Failed to approve join request after retry: {e}')
+    except Exception as e:
+        logger.error(f'Error approving join request: {e}')
 
 def main():
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
+    try:
+        updater = Updater(TOKEN, use_context=True)
+        dp = updater.dispatcher
 
-    dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(ChatJoinRequestHandler(approve_join_request))
+        dp.add_handler(CommandHandler('start', start))
+        dp.add_handler(ChatJoinRequestHandler(approve_join_request))
 
-    # Logging uchun xatolarni qayta ishlash
-    dp.add_error_handler(error)
+        # Logging uchun xatolarni qayta ishlash
+        dp.add_error_handler(error)
 
-    updater.start_polling()
-    updater.idle()
+        logger.info("Bot is starting")
+        updater.start_polling()
+        updater.idle()
+    except Exception as e:
+        logger.error(f'Failed to start bot: {e}')
 
 def error(update: Update, context: CallbackContext):
     """Log Errors caused by Updates."""
