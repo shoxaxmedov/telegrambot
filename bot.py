@@ -1,51 +1,49 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, ChatJoinRequestHandler, CallbackContext
+from telegram.ext import Application, CommandHandler, ChatMemberHandler, CallbackContext
 import logging
 
-# Tokeningizni kiriting
-TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
+TOKEN = '7320239291:AAEeSE1fbtaUmfm8hbEwH0dRm12WlSwkug0'
 
-# Logging formatini sozlash
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+# Logger o'rnatilishi
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 logger = logging.getLogger(__name__)
 
 def start(update: Update, context: CallbackContext):
-    logger.info(f"Received /start command from {update.effective_user.id}")
     update.message.reply_text('Assalomu alaykum! Botga xush kelibsiz!')
 
-def approve_join_request(update: Update, context: CallbackContext):
-    chat_join_request = update.chat_join_request
-    chat_id = chat_join_request.chat.id
-    user_id = chat_join_request.from_user.id
-    logger.info(f"Received join request from user {user_id} in chat {chat_id}")
+async def approve_join_request(update: Update, context: CallbackContext):
+    chat_member = update.chat_member
+    if chat_member.new_chat_member.status == 'member':
+        chat_id = chat_member.chat.id
+        user_id = chat_member.new_chat_member.user.id
+        try:
+            await context.bot.approve_chat_join_request(chat_id, user_id)
+            logger.info(f"Approved join request for user_id: {user_id} in chat_id: {chat_id}")
+        except Exception as e:
+            logger.error(f"Error approving join request: {e}")
+
+async def main():
+    application = Application.builder().token(TOKEN).build()
+
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(ChatMemberHandler(approve_join_request, ChatMemberHandler.CHAT_MEMBER))
+
+    logger.info("Bot is starting")
     try:
-        context.bot.approve_chat_join_request(chat_id, user_id)
-        logger.info(f"Approved join request from user {user_id}")
+        await application.initialize()
+        await application.start()
+        await application.updater.start_polling()
+        await application.stop()
     except Exception as e:
-        logger.error(f'Error approving join request: {e}')
-
-def main():
-    try:
-        updater = Updater(TOKEN, use_context=True)
-        dp = updater.dispatcher
-
-        dp.add_handler(CommandHandler('start', start))
-        dp.add_handler(ChatJoinRequestHandler(approve_join_request))
-
-        # Logging uchun xatolarni qayta ishlash
-        dp.add_error_handler(error)
-
-        logger.info("Bot is starting")
-        updater.start_polling()
-        updater.idle()
-    except Exception as e:
-        logger.error(f'Failed to start bot: {e}')
-        # Botni qayta urinish qilish uchun qayta chaqirish
-        main()
-
-def error(update: Update, context: CallbackContext):
-    """Log Errors caused by Updates."""
-    logger.warning('Update "%s" caused error "%s"', update, context.error)
+        logger.error(f"Failed to start bot: {e}")
 
 if __name__ == '__main__':
-    main()
+    import asyncio
+
+    try:
+        asyncio.run(main())
+    except RuntimeError as e:
+        logger.error(f"Runtime error: {e}")
