@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import Application, CommandHandler, ChatMemberHandler, CallbackContext
+from telegram.ext import ApplicationBuilder, CommandHandler, ChatMemberHandler, ContextTypes
 import logging
 
 TOKEN = '7320239291:AAEeSE1fbtaUmfm8hbEwH0dRm12WlSwkug0'
@@ -11,10 +11,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def start(update: Update, context: CallbackContext):
-    update.message.reply_text('Assalomu alaykum! Botga xush kelibsiz!')
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text('Assalomu alaykum! Botga xush kelibsiz!')
 
-async def approve_join_request(update: Update, context: CallbackContext):
+async def approve_join_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_member = update.chat_member
     if chat_member.new_chat_member.status == 'member':
         chat_id = chat_member.chat.id
@@ -26,7 +26,7 @@ async def approve_join_request(update: Update, context: CallbackContext):
             logger.error(f"Error approving join request: {e}")
 
 async def main():
-    application = Application.builder().token(TOKEN).build()
+    application = ApplicationBuilder().token(TOKEN).build()
 
     application.add_handler(CommandHandler('start', start))
     application.add_handler(ChatMemberHandler(approve_join_request, ChatMemberHandler.CHAT_MEMBER))
@@ -36,7 +36,7 @@ async def main():
         await application.initialize()
         await application.start()
         await application.updater.start_polling()
-        await application.stop()
+        await application.updater.stop()
     except Exception as e:
         logger.error(f"Failed to start bot: {e}")
 
