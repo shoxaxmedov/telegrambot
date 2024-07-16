@@ -1,9 +1,9 @@
+import os
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes
-from telegram.ext.filters import StatusUpdate
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-# Tokenni o'z tokeningiz bilan almashtiring
-TOKEN = '7320239291:AAEeSE1fbtaUmfm8hbEwH0dRm12WlSwkug0'
+# Tokenni muhit o'zgaruvchisidan oling
+TOKEN = os.getenv('TOKEN')
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Bot ishga tushdi!')
@@ -31,7 +31,7 @@ def main() -> None:
     application = ApplicationBuilder().token(TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(StatusUpdate.NEW_CHAT_MEMBERS, new_member))
+    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, new_member))
 
     application.run_polling()
 
